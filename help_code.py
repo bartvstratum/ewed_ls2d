@@ -54,7 +54,9 @@ def get_web_dict():
             z0m = 0,
             z0h = 0,
             is_tuned = False
-            )
+            ),
+        preset = 'case_name',
+        permutations = []
     )
 
 
