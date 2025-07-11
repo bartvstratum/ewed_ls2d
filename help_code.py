@@ -1,11 +1,20 @@
 from datetime import datetime
 import json
+import glob
 import os
 
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import pandas as pd
 import numpy as np
 import ls2d
+
+# Constants.
+Rd = 287.05
+cp = 1005.
+p0 = 1e5
+T0 = 273.15
+
 
 def get_mxl_dict():
     """
@@ -291,6 +300,43 @@ class Subsidence_profile:
         self.fig.canvas.draw_idle()
 
 
+def parse_sounding(sounding_csv):
+    """
+    Read single sounding into Pandas dataframe,
+    and calculate derived properties like potential
+    temperature, specific humidity, et cetera.
+    """
+    def esat(T):
+        return 0.611e3 * np.exp(17.2694 * (T - 273.16) / (T - 35.86))
+
+    def qsat(T,p):
+        return 0.622 * esat(T) / p
+
+    # Parse CSV with Pandas.
+    df = pd.read_csv(sounding_csv, parse_dates=['timestamp'], index_col=['timestamp'])
+
+    # To SI...
+    df['temperature'] += T0  # Celsius to Kelvin
+    df['speed'] /= 3.6  # km/h to m/s
+
+    # Calculate derived properties.
+    # Absolute to potential temperature.
+    df['exner'] = (df['pressure'] / p0)**(Rd/cp)
+    df['th'] = df['temperature'] / df['exner']
+
+    # Relative to specific humidity.
+    es = esat(df['temperature'])
+    e = df['relative_humidity'] / 100 * es
+    df['q'] = e * 0.622 / df['pressure']
+
+    # Wind speed + direction to components.
+    wind_dir_rad = np.deg2rad(df['heading'])
+    df['u'] = -df['speed'] * np.sin(wind_dir_rad)
+    df['v'] = -df['speed'] * np.cos(wind_dir_rad)
+
+    return df
+
+
 class Fire_case:
     def __init__(self, name, lon, lat, start, end, ls2d_path):
         """
@@ -325,6 +371,16 @@ class Fire_case:
         else:
             print(f'No tuning for \"{name}\", creating new one...')
             self.mxl = get_mxl_dict()
+
+        # Read soundings.
+        sounding_csv = glob.glob(f'soundings/{name}/*.csv')
+        self.soundings = []
+
+        if len(sounding_csv) > 0:
+            print(f'Found {len(sounding_csv)} sounding(s) for \"{name}\".')
+
+            for csv in sounding_csv:
+                self.soundings.append(parse_sounding(csv))
 
 
     def download(self):
