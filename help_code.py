@@ -16,6 +16,48 @@ p0 = 1e5
 T0 = 273.15
 
 
+def get_web_dict():
+    return dict(
+        reference = dict(
+            name = 'case_name',
+            description = 'default description',
+            h = 500,
+            theta = 290,
+            dtheta = 2,
+            gamma_theta = [0.003, 0.006],
+            z_theta =[1500, 3720],
+            advtheta = 0,
+            qt = 10e-3,
+            dqt = -2e-3,
+            gamma_qt = [-0.002e-3, -0.003e-3],
+            z_qt = [1200, 3720],
+            advq = 0,
+            divU = 1e-5,
+            u = 5,
+            ug = 7,
+            du = 2,
+            gamma_u = [1e-3, 1e-3],
+            z_u = [1200, 3720],
+            advu = 0,
+            v = 5,
+            vg = 6,
+            dv = 1,
+            gamma_v = [-1e-3, -1e-3],
+            z_v = [1200, 3720],
+            advv = 0,
+            ustar = 0.1,
+            runtime = 10800,
+            wtheta = [0],
+            wq = [0],
+            fc = 0,
+            p0 = 101300,
+            z0m = 0,
+            z0h = 0,
+            is_tuned = False
+            )
+    )
+
+
 def get_mxl_dict():
     """
     Create dictionary with all mixed-layer properties:
@@ -57,6 +99,8 @@ def get_mxl_dict():
         z0h = 0,
         is_tuned = False
     )
+
+
 
 
 def load_json(json_file):
