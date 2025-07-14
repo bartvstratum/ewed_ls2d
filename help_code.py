@@ -367,7 +367,7 @@ def parse_sounding(sounding_csv):
 
     # To SI...
     df['temperature'] += T0  # Celsius to Kelvin
-    df['speed'] /= 3.6  # km/h to m/s
+    #df['speed'] /= 3.6  # km/h to m/s
 
     # Calculate derived properties.
     # Absolute to potential temperature.
@@ -711,7 +711,7 @@ class Fire_case:
                     pressure = (df_z['pressure']/100).tolist(),
                     temperature = (df_z['temperature']-T0).tolist(),
                     relativeHumidity = df_z['relative_humidity'].tolist(),
-                    windSpeed = (df_z['speed']*3.6).tolist(),
+                    windSpeed = df_z['speed'].tolist(),
                     windDirection = df_z['heading'].tolist()
                 )
 
