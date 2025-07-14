@@ -380,9 +380,10 @@ def parse_sounding(sounding_csv):
     df['qt'] = e * 0.622 / df['pressure']
 
     # Wind speed + direction to components.
+    # NOTE: heading is NOT following the meteorological convention, but 180 degrees off.
     wind_dir_rad = np.deg2rad(df['heading'])
-    df['u'] = -df['speed'] * np.sin(wind_dir_rad)
-    df['v'] = -df['speed'] * np.cos(wind_dir_rad)
+    df['u'] = df['speed'] * np.sin(wind_dir_rad)
+    df['v'] = df['speed'] * np.cos(wind_dir_rad)
 
     return df
 
