@@ -5,6 +5,7 @@ import os
 
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+from scipy.interpolate import interp1d
 import pandas as pd
 import numpy as np
 import ls2d
@@ -371,17 +372,45 @@ def parse_sounding(sounding_csv):
     # Calculate derived properties.
     # Absolute to potential temperature.
     df['exner'] = (df['pressure'] / p0)**(Rd/cp)
-    df['th'] = df['temperature'] / df['exner']
+    df['theta'] = df['temperature'] / df['exner']
 
     # Relative to specific humidity.
     es = esat(df['temperature'])
     e = df['relative_humidity'] / 100 * es
-    df['q'] = e * 0.622 / df['pressure']
+    df['qt'] = e * 0.622 / df['pressure']
 
     # Wind speed + direction to components.
     wind_dir_rad = np.deg2rad(df['heading'])
     df['u'] = -df['speed'] * np.sin(wind_dir_rad)
     df['v'] = -df['speed'] * np.cos(wind_dir_rad)
+
+    return df
+
+
+def interpolate_sounding_to_height(df, target_agl, agl_col='agl', kind='linear'):
+    """
+    Interpolates all columns in a DataFrame (except the height column)
+    to a fixed set of height levels, grouped by time.
+    """
+    # Average duplicate heights.
+    df = df.groupby(agl_col, as_index=False).mean()
+
+    df_sorted = df.sort_values(agl_col)
+    x = df_sorted[agl_col].values
+    target_agl = np.asarray(target_agl)
+
+    result = {agl_col: target_agl}
+    for col in df.columns:
+        if col == agl_col:
+            continue
+        y = df_sorted[col].values
+        f = interp1d(x, y, kind=kind, fill_value='extrapolate', bounds_error=False)
+        result[col] = f(target_agl)
+
+    df = pd.DataFrame(result).set_index(agl_col)
+
+    # Remove NaN values.
+    df = df.interpolate(method='linear', axis=0, limit_direction='both')
 
     return df
 
@@ -426,13 +455,13 @@ class Fire_case:
 
         # Read soundings.
         sounding_csv = glob.glob(f'soundings/{name}/*.csv')
-        self.soundings = []
+        self.soundings = {}
 
         if len(sounding_csv) > 0:
             print(f'Found {len(sounding_csv)} sounding(s) for \"{name}\".')
 
             for csv in sounding_csv:
-                self.soundings.append(parse_sounding(csv))
+                self.soundings[csv] = parse_sounding(csv)
 
 
     def download(self):
@@ -507,10 +536,24 @@ class Fire_case:
 
             return z, p
 
+
+        def plot_soundings(var, scale_fac=1):
+            """
+            Plot soundings for variable `var`.
+            """
+            if len(self.soundings) == 0:
+                return
+
+            for name, sounding in self.soundings.items():
+                plt.plot(sounding[var]*scale_fac, sounding['agl'], dashes=[2,1], label=f'Sounding {sounding.index[0]} UTC')
+
+
         z_thl, p_thl = get_mxl_prof('theta')
         z_qt, p_qt = get_mxl_prof('qt')
         z_u, p_u = get_mxl_prof('u')
         z_v, p_v = get_mxl_prof('v')
+
+        z_top = 4000
 
         self.mxl_profs = []
 
@@ -520,14 +563,18 @@ class Fire_case:
         ax=plt.subplot(231)
         plt.plot(self.era5.thl[0,:], self.era5.z, label='ERA5')
         self.mxl_thl = Mixed_layer_profile(fig, ax, p_thl, z_thl, self.mxl_profs)
+        plot_soundings('theta')
         plt.xlabel(r'$\theta_\mathrm{l}$ (K)')
         plt.ylabel(r'$z$ (m)')
         plt.legend()
+        plt.ylim(0, z_top)
 
         ax=plt.subplot(232)
         plt.plot(self.era5.qt[0,:]*1e3, self.era5.z)
         self.mxl_qt = Mixed_layer_profile(fig, ax, p_qt, z_qt, self.mxl_profs)
+        plot_soundings('qt', scale_fac=1000)
         plt.xlabel(r'$q_\mathrm{t}$ (g kg$^{-1}$)')
+        plt.ylim(0, z_top)
 
         ax=plt.subplot(233)
         plt.plot(self.era5.time, self.era5.wth*1.2*1005, color='r', label=r'H')
@@ -543,11 +590,13 @@ class Fire_case:
         min_ug, mean_ug, max_ug = get_range(self.era5.ug)
         plt.fill_betweenx(self.era5.z, min_ug, max_ug, alpha=0.1)
         plt.plot(mean_ug, self.era5.z, ':', color='C0', label=r'$u_\mathrm{g}$')
+        plot_soundings('u')
 
         self.mxl_u = Mixed_layer_profile(fig, ax, p_u, z_u, self.mxl_profs)
         plt.xlabel(r'$u$ (m s$^{-1}$)')
         plt.ylabel(r'$z$ (m)')
         plt.legend()
+        plt.ylim(0, z_top)
 
         ax=plt.subplot(235)
         plt.plot(self.era5.v[0,:], self.era5.z, label=r'$v$')
@@ -555,10 +604,12 @@ class Fire_case:
         min_vg, mean_vg, max_vg = get_range(self.era5.vg)
         plt.fill_betweenx(self.era5.z, min_vg, max_vg, alpha=0.1)
         plt.plot(mean_vg, self.era5.z, ':', color='C0', label=r'$v_\mathrm{g}$')
+        plot_soundings('v')
 
         self.mxl_v = Mixed_layer_profile(fig, ax, p_v, z_v, self.mxl_profs)
         plt.xlabel(r'$v$ (m s$^{-1}$)')
         plt.legend()
+        plt.ylim(0, z_top)
 
         ax=plt.subplot(236)
 
@@ -569,6 +620,7 @@ class Fire_case:
         self.mxl_wls = Subsidence_profile(fig, ax, self.mxl_ref['divU'])
 
         plt.xlabel(r'$w_\mathrm{LS}$ (m s$^{-1}$)')
+        plt.ylim(0, z_top)
 
         # Keep track of all mixed-layer profiles. We need to 
         # update the boundary layer height in all plots.
@@ -578,9 +630,9 @@ class Fire_case:
         self.mxl_profs.append(self.mxl_v) 
 
 
-    def save_mxl_params(self, z_top=4000):
+    def save_to_json(self, z_top=4000):
         """
-        Save mixed-layer parameters to JSON after tuning."
+        Save mixed-layer parameters and other data (=sounding) to JSON after tuning..
         """ 
 
         # Get profiles from plotting instance.
@@ -641,6 +693,28 @@ class Fire_case:
         self.mxl_ref['z0h'] = float(self.era5.z0h.mean())
 
         self.mxl_ref['is_tuned'] = True
+
+        # Add sounding (if available).
+        if len(self.soundings) > 0:
+            self.mxl['observations'] = []
+
+            for name, df in self.soundings.items():
+
+                # Interpolate sounding to reasonable height interval.
+                z_out = np.arange(0, df['agl'].max(), 20)
+                df_z = interpolate_sounding_to_height(df, z_out)
+
+                d = dict(
+                    name = name,
+                    height = df_z.index.tolist(),
+                    pressure = df_z['pressure'].tolist(),
+                    temperature = (df_z['temperature']-T0).tolist(),
+                    relativeHumidity = df_z['relative_humidity'].tolist(),
+                    windSpeed = (df_z['speed']*3.6).tolist(),
+                    windDirection = df_z['heading'].tolist()
+                )
+
+                self.mxl['observations'].append(d)
 
         # Save in JSON format.
         save_json(self.mxl, self.json_file)
