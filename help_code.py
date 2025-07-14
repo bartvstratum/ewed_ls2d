@@ -17,6 +17,11 @@ T0 = 273.15
 
 
 def get_web_dict():
+    """
+    Create dictionary with data structure and variable
+    names used by web interface. Some reasonable first
+    values are set, which require manual tuning.
+    """
     return dict(
         reference = dict(
             name = 'case_name',
@@ -60,49 +65,47 @@ def get_web_dict():
     )
 
 
-def get_mxl_dict():
-    """
-    Create dictionary with all mixed-layer properties:
-    Initial profiles, forcings, surface fluxes, ...
-    Initial values are completely (well, almost) random.
-    """
-    return dict(
-        zi = 500,
-        thl = 290,
-        dthl = 2,
-        gamma_thl_1 = 0.003,
-        z1_thl = 1500,
-        gamma_thl_2 = 0.006,
-        qt = 10e-3,
-        dqt = -2e-3,
-        gamma_qt_1 = -0.002e-3,
-        z1_qt = 1200,
-        gamma_qt_2 = -0.003e-3,
-        div = 1e-5,
-        u = 5,
-        ug = 7,
-        du = 2,
-        gamma_u_1 = 1e-3,
-        z1_u = 1200,
-        gamma_u_2 = 1e-3,
-        v = 5,
-        vg = 6,
-        dv = 1,
-        gamma_v_1 = -1e-3,
-        z1_v = 1200,
-        gamma_v_2 = -1e-3,
-        start_time = datetime(1900,1,1).isoformat(),
-        time = [0],
-        wthl = [0],
-        wqt = [0],
-        fc = 0,
-        ps = 0,
-        z0m = 0,
-        z0h = 0,
-        is_tuned = False
-    )
-
-
+#def get_mxl_dict():
+#    """
+#    Create dictionary with all mixed-layer properties:
+#    Initial profiles, forcings, surface fluxes, ...
+#    Initial values are completely (well, almost) random.
+#    """
+#    return dict(
+#        zi = 500,
+#        thl = 290,
+#        dthl = 2,
+#        gamma_thl_1 = 0.003,
+#        z1_thl = 1500,
+#        gamma_thl_2 = 0.006,
+#        qt = 10e-3,
+#        dqt = -2e-3,
+#        gamma_qt_1 = -0.002e-3,
+#        z1_qt = 1200,
+#        gamma_qt_2 = -0.003e-3,
+#        div = 1e-5,
+#        u = 5,
+#        ug = 7,
+#        du = 2,
+#        gamma_u_1 = 1e-3,
+#        z1_u = 1200,
+#        gamma_u_2 = 1e-3,
+#        v = 5,
+#        vg = 6,
+#        dv = 1,
+#        gamma_v_1 = -1e-3,
+#        z1_v = 1200,
+#        gamma_v_2 = -1e-3,
+#        start_time = datetime(1900,1,1).isoformat(),
+#        time = [0],
+#        wthl = [0],
+#        wqt = [0],
+#        fc = 0,
+#        ps = 0,
+#        z0m = 0,
+#        z0h = 0,
+#        is_tuned = False
+#    )
 
 
 def load_json(json_file):
@@ -409,14 +412,17 @@ class Fire_case:
             'data_source' : 'CDS'}
 
         # Read or create dictionary with mixed-layer structure.
-        self.json_file = f'json/{name}.json'
+        self.json_file = f'json/{name}_web.json'
 
         if os.path.exists(self.json_file):
             print(f'Found tuned case for \"{name}\", loading...')
             self.mxl = load_json(self.json_file)
         else:
             print(f'No tuning for \"{name}\", creating new one...')
-            self.mxl = get_mxl_dict()
+            self.mxl = get_web_dict()
+
+        # Group with the case parameters.
+        self.mxl_ref = self.mxl['reference']
 
         # Read soundings.
         sounding_csv = glob.glob(f'soundings/{name}/*.csv')
@@ -472,26 +478,26 @@ class Fire_case:
             ax.xaxis.set_major_formatter(fmt)
 
         # For new input, guess mixed-layer values.
-        if not self.mxl['is_tuned']:
+        if not self.mxl_ref['is_tuned']:
 
-            self.mxl['thl'] = self.era5.thl[0,:10].mean()
-            self.mxl['qt']  = self.era5.qt[0,:10].mean()
+            self.mxl_ref['theta'] = self.era5.thl[0,:10].mean()
+            self.mxl_ref['qt']  = self.era5.qt[0,:10].mean()
 
-            self.mxl['u'] = self.era5.u[0,:10].mean()
-            self.mxl['v']  = self.era5.v[0,:10].mean()
+            self.mxl_ref['u'] = self.era5.u[0,:10].mean()
+            self.mxl_ref['v']  = self.era5.v[0,:10].mean()
 
         def get_mxl_prof(var):
             """
             Create mixed-layer profile.
             """
-            z0 = self.mxl['zi']
-            z1 = self.mxl[f'z1_{var}']
-            z2 = 4000
+            z0 = self.mxl_ref['h']
+            z1 = self.mxl_ref[f'z_{var}'][0]
+            z2 = self.mxl_ref[f'z_{var}'][1]
 
-            v0 = self.mxl[f'{var}']
-            v1 = v0 + self.mxl[f'd{var}']
-            v2 = v1 + (z1-z0) * self.mxl[f'gamma_{var}_1']
-            v3 = v2 + (z2-z1) * self.mxl[f'gamma_{var}_2']
+            v0 = self.mxl_ref[f'{var}']
+            v1 = v0 + self.mxl_ref[f'd{var}']
+            v2 = v1 + (z1-z0) * self.mxl_ref[f'gamma_{var}'][0]
+            v3 = v2 + (z2-z1) * self.mxl_ref[f'gamma_{var}'][1]
 
             z = np.array([0, z0, z0, z1, z2])
             p = np.array([v0, v0, v1, v2, v3])
@@ -501,7 +507,7 @@ class Fire_case:
 
             return z, p
 
-        z_thl, p_thl = get_mxl_prof('thl')
+        z_thl, p_thl = get_mxl_prof('theta')
         z_qt, p_qt = get_mxl_prof('qt')
         z_u, p_u = get_mxl_prof('u')
         z_v, p_v = get_mxl_prof('v')
@@ -560,7 +566,7 @@ class Fire_case:
         plt.fill_betweenx(self.era5.z, min_wls, max_wls, alpha=0.1)
         plt.plot(mean_wls, self.era5.z, ':', color='C0')
 
-        self.mxl_wls = Subsidence_profile(fig, ax, self.mxl['div'])
+        self.mxl_wls = Subsidence_profile(fig, ax, self.mxl_ref['divU'])
 
         plt.xlabel(r'$w_\mathrm{LS}$ (m s$^{-1}$)')
 
@@ -572,7 +578,7 @@ class Fire_case:
         self.mxl_profs.append(self.mxl_v) 
 
 
-    def save_mxl_params(self):
+    def save_mxl_params(self, z_top=4000):
         """
         Save mixed-layer parameters to JSON after tuning."
         """ 
@@ -591,49 +597,50 @@ class Fire_case:
         z_v = self.mxl_v.y
 
         # Store parameters.
-        self.mxl['zi'] = float(z_thl[1])
+        self.mxl_ref['h'] = float(z_thl[1])
 
-        self.mxl['thl'] = float(thl[0])
-        self.mxl['dthl'] = float(thl[2] - thl[1])
-        self.mxl['gamma_thl_1'] = float((thl[3] - thl[2]) / (z_thl[3] - z_thl[2]))
-        self.mxl['z1_thl'] = float(z_thl[3])
-        self.mxl['gamma_thl_2'] = float((thl[4] - thl[3]) / (z_thl[4] - z_thl[3]))
+        self.mxl_ref['theta'] = float(thl[0])
+        self.mxl_ref['dtheta'] = float(thl[2] - thl[1])
+        self.mxl_ref['gamma_theta'][0] = float((thl[3] - thl[2]) / (z_thl[3] - z_thl[2]))
+        self.mxl_ref['gamma_theta'][1] = float((thl[4] - thl[3]) / (z_thl[4] - z_thl[3]))
+        self.mxl_ref['z_theta'][0] = float(z_thl[3])
+        self.mxl_ref['z_theta'][1] = z_top
 
-        self.mxl['qt'] = float(qt[0])
-        self.mxl['dqt'] = float(qt[2] - qt[1])
-        self.mxl['gamma_qt_1'] = float((qt[3] - qt[2]) / (z_qt[3] - z_qt[2]))
-        self.mxl['z1_qt'] = float(z_qt[3])
-        self.mxl['gamma_qt_2'] = float((qt[4] - qt[3]) / (z_qt[4] - z_qt[3]))
+        self.mxl_ref['qt'] = float(qt[0])
+        self.mxl_ref['dqt'] = float(qt[2] - qt[1])
+        self.mxl_ref['gamma_qt'][0] = float((qt[3] - qt[2]) / (z_qt[3] - z_qt[2]))
+        self.mxl_ref['gamma_qt'][1] = float((qt[4] - qt[3]) / (z_qt[4] - z_qt[3]))
+        self.mxl_ref['z_qt'][0] = float(z_qt[3])
+        self.mxl_ref['z_qt'][1] = z_top
 
-        self.mxl['u'] = float(u[0])
-        self.mxl['du'] = float(u[2] - u[1])
-        self.mxl['gamma_u_1'] = float((u[3] - u[2]) / (z_u[3] - z_u[2]))
-        self.mxl['z1_u'] = float(z_u[3])
-        self.mxl['gamma_u_2'] = float((u[4] - u[3]) / (z_u[4] - z_u[3]))
-        self.mxl['ug'] = self.mxl['u'] + self.mxl['du']
+        self.mxl_ref['u'] = float(u[0])
+        self.mxl_ref['du'] = float(u[2] - u[1])
+        self.mxl_ref['gamma_u'][0] = float((u[3] - u[2]) / (z_u[3] - z_u[2]))
+        self.mxl_ref['gamma_u'][1] = float((u[4] - u[3]) / (z_u[4] - z_u[3]))
+        self.mxl_ref['z_u'][0] = float(z_u[3])
+        self.mxl_ref['z_u'][1] = z_top
+        self.mxl_ref['ug'] = self.mxl_ref['u'] + self.mxl_ref['du']
 
-        self.mxl['v'] = float(v[0])
-        self.mxl['dv'] = float(v[2] - v[1])
-        self.mxl['gamma_v_1'] = float((v[3] - v[2]) / (z_v[3] - z_v[2]))
-        self.mxl['z1_v'] = float(z_v[3])
-        self.mxl['gamma_v_2'] = float((v[4] - v[3]) / (z_v[4] - z_v[3]))
-        self.mxl['vg'] = self.mxl['v'] + self.mxl['dv']
+        self.mxl_ref['v'] = float(v[0])
+        self.mxl_ref['dv'] = float(v[2] - v[1])
+        self.mxl_ref['gamma_v'][0] = float((v[3] - v[2]) / (z_v[3] - z_v[2]))
+        self.mxl_ref['gamma_v'][1] = float((v[4] - v[3]) / (z_v[4] - z_v[3]))
+        self.mxl_ref['z_v'][0] = float(z_v[3])
+        self.mxl_ref['z_v'][1] = z_top
+        self.mxl_ref['vg'] = self.mxl_ref['v'] + self.mxl_ref['dv']
 
-        self.mxl['div'] = float(-self.mxl_wls.x[1] / self.mxl_wls.y[1])
+        self.mxl_ref['divU'] = float(-self.mxl_wls.x[1] / self.mxl_wls.y[1])
 
-        self.mxl['start_time'] = self.start.isoformat()
+        self.mxl_ref['wtheta'] = [float(x) for x in self.era5.wth]
+        self.mxl_ref['wq'] = [float(x) for x in self.era5.wq]
 
-        self.mxl['time'] = [int(x) for x in np.arange(self.era5.time.size)]
-        self.mxl['wthl'] = [float(x) for x in self.era5.wth]
-        self.mxl['wqt'] = [float(x) for x in self.era5.wq]
+        self.mxl_ref['fc'] = float(self.era5.attrs['fc'])
+        self.mxl_ref['p0'] = float(self.era5.ps.mean())
 
-        self.mxl['fc'] = float(self.era5.attrs['fc'])
-        self.mxl['ps'] = float(self.era5.ps.mean())
+        self.mxl_ref['z0m'] = float(self.era5.z0m.mean())
+        self.mxl_ref['z0h'] = float(self.era5.z0h.mean())
 
-        self.mxl['z0m'] = float(self.era5.z0m.mean())
-        self.mxl['z0h'] = float(self.era5.z0h.mean())
-
-        self.mxl['is_tuned'] = True
+        self.mxl_ref['is_tuned'] = True
 
         # Save in JSON format.
         save_json(self.mxl, self.json_file)
