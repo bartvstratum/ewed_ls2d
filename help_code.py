@@ -707,7 +707,7 @@ class Fire_case:
                 d = dict(
                     name = name,
                     height = df_z.index.tolist(),
-                    pressure = df_z['pressure'].tolist(),
+                    pressure = (df_z['pressure']/100).tolist(),
                     temperature = (df_z['temperature']-T0).tolist(),
                     relativeHumidity = df_z['relative_humidity'].tolist(),
                     windSpeed = (df_z['speed']*3.6).tolist(),
