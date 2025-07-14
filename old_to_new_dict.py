@@ -1,7 +1,6 @@
 import glob
 from help_code import load_json, save_json, get_web_dict
 
-
 json_files = glob.glob('json/*.json')
 
 for json_file in json_files:
