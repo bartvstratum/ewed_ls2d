@@ -117,12 +117,15 @@ def load_json(json_file):
         return json.load(f)
 
 
-def save_json(data, json_file):
+def save_json(data, json_file, minimal=False):
     """
     Save `data` to `json_file`.
     """
     with open(json_file, 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=4, ensure_ascii=False)
+        if minimal:
+            json.dump(data, f, separators=(',', ':'), ensure_ascii=True)
+        else:
+            json.dump(data, f, indent=4, ensure_ascii=True)
 
 
 class Mixed_layer_profile:
@@ -702,7 +705,7 @@ class Fire_case:
             for name, df in self.soundings.items():
 
                 # Interpolate sounding to reasonable height interval.
-                z_out = np.arange(0, df['agl'].max(), 20)
+                z_out = np.arange(0, df['agl'].max(), 50)
                 df_z = interpolate_sounding_to_height(df, z_out)
 
                 d = dict(
