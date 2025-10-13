@@ -78,13 +78,14 @@
         "p0": 98295.9609375,
         "z0m": 0.23201929032802582,
         "z0h": 0.014128580689430237,
-        "is_tuned": true
+        "is_tuned": true,
+        "t0": "2021-07-13T15:00:00Z"
     },
     "preset": "case_name",
     "permutations": [],
     "observations": [
         {
-            "name": "soundings/martorel/7-2021-07-13 00:00:00.csv",
+            "name": "soundings/martorel/26-2021-07-13 17:05:07.csv",
             "height": [
                 0,
                 50,
@@ -387,7 +388,7 @@
             ]
         },
         {
-            "name": "soundings/martorel/6-2021-07-13 00:00:00.csv",
+            "name": "soundings/martorel/25-2021-07-13 16:25:11.csv",
             "height": [
                 0,
                 50,
@@ -822,7 +823,7 @@
             ]
         },
         {
-            "name": "soundings/martorel/5-2021-07-13 18:00:00.csv",
+            "name": "soundings/martorel/24-2021-07-13 16:09:22.csv",
             "height": [
                 0,
                 50,

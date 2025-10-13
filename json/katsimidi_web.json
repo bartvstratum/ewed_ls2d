@@ -86,13 +86,14 @@
         "p0": 99118.1953125,
         "z0m": 0.41561299562454224,
         "z0h": 0.0015806852607056499,
-        "is_tuned": true
+        "is_tuned": true,
+        "t0": "2024-06-29T11:00:00Z"
     },
     "preset": "case_name",
     "permutations": [],
     "observations": [
         {
-            "name": "soundings/katsimidi/17-2024-06-29 19:39:00.csv",
+            "name": "soundings/katsimidi/35-2024-06-29 17:14:37.csv",
             "height": [
                 0,
                 50,

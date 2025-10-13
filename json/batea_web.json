@@ -84,13 +84,14 @@
         "p0": 97431.0,
         "z0m": 0.45045313239097595,
         "z0h": 0.0028092048596590757,
-        "is_tuned": true
+        "is_tuned": true,
+        "t0": "2024-05-11T12:00:00Z"
     },
     "preset": "case_name",
     "permutations": [],
     "observations": [
         {
-            "name": "soundings/batea/14-2024-05-11 17:10:00.csv",
+            "name": "soundings/batea/29-2024-05-11 15:29:48.csv",
             "height": [
                 0,
                 50,
@@ -621,7 +622,7 @@
             ]
         },
         {
-            "name": "soundings/batea/15-2024-05-11 17:41:00.csv",
+            "name": "soundings/batea/30-2024-05-28 15:48:05.csv",
             "height": [
                 0,
                 50,

@@ -78,13 +78,14 @@
         "p0": 97864.015625,
         "z0m": 0.4823833107948303,
         "z0h": 0.003249803790822625,
-        "is_tuned": true
+        "is_tuned": true,
+        "t0": "2024-07-07T15:00:00Z"
     },
     "preset": "case_name",
     "permutations": [],
     "observations": [
         {
-            "name": "soundings/mequinensa/19-2024-07-03 19:46:00.csv",
+            "name": "soundings/mequinensa/37-2024-07-03 17:51:37.csv",
             "height": [
                 0,
                 50,
@@ -219,7 +220,7 @@
             ]
         },
         {
-            "name": "soundings/mequinensa/18-2024-07-03 18:37:00.csv",
+            "name": "soundings/mequinensa/36-2024-07-03 16:41:46.csv",
             "height": [
                 0,
                 50,

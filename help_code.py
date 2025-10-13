@@ -59,7 +59,8 @@ def get_web_dict():
             p0 = 101300,
             z0m = 0,
             z0h = 0,
-            is_tuned = False
+            is_tuned = False,
+            t0='2000-01-01T00:00:00Z'
             ),
         preset = 'case_name',
         permutations = []
@@ -695,6 +696,8 @@ class Fire_case:
 
         self.mxl_ref['z0m'] = float(self.era5.z0m.mean())
         self.mxl_ref['z0h'] = float(self.era5.z0h.mean())
+
+        self.mxl_ref['t0'] = self.start.strftime("%Y-%m-%dT%H:%M:%SZ")
 
         self.mxl_ref['is_tuned'] = True
 

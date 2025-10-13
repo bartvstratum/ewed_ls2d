@@ -88,7 +88,8 @@
         "p0": 94732.734375,
         "z0m": 0.7787185311317444,
         "z0h": 0.11362532526254654,
-        "is_tuned": true
+        "is_tuned": true,
+        "t0": "2023-10-05T10:00:00Z"
     },
     "preset": "case_name",
     "permutations": [],

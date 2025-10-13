@@ -84,13 +84,14 @@
         "p0": 99419.9609375,
         "z0m": 0.3742941617965698,
         "z0h": 0.0014167198678478599,
-        "is_tuned": true
+        "is_tuned": true,
+        "t0": "2024-08-11T12:00:00Z"
     },
     "preset": "case_name",
     "permutations": [],
     "observations": [
         {
-            "name": "soundings/varnavas/23-2024-08-11 21:44:00.csv",
+            "name": "soundings/varnavas/42-2024-08-11 18:58:30.csv",
             "height": [
                 0,
                 50,

@@ -82,13 +82,14 @@
         "p0": 98291.453125,
         "z0m": 0.3504500389099121,
         "z0h": 0.002432937966659665,
-        "is_tuned": true
+        "is_tuned": true,
+        "t0": "2024-07-28T13:00:00Z"
     },
     "preset": "case_name",
     "permutations": [],
     "observations": [
         {
-            "name": "soundings/la-figuera/20-2024-07-28 17:14:00.csv",
+            "name": "soundings/la-figuera/38-2024-07-28 15:22:49.csv",
             "height": [
                 0,
                 50,
