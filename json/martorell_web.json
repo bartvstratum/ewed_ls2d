@@ -85,7 +85,7 @@
     "permutations": [],
     "observations": [
         {
-            "name": "soundings/martorel/26-2021-07-13 17:05:07.csv",
+            "name": "soundings/martorell/26-2021-07-13 17:05:07.csv",
             "height": [
                 0,
                 50,
@@ -388,7 +388,7 @@
             ]
         },
         {
-            "name": "soundings/martorel/25-2021-07-13 16:25:11.csv",
+            "name": "soundings/martorell/25-2021-07-13 16:25:11.csv",
             "height": [
                 0,
                 50,
@@ -823,7 +823,7 @@
             ]
         },
         {
-            "name": "soundings/martorel/24-2021-07-13 16:09:22.csv",
+            "name": "soundings/martorell/24-2021-07-13 16:09:22.csv",
             "height": [
                 0,
                 50,
