@@ -243,6 +243,37 @@ class Mixed_layer_profile:
         if self.index is None or event.inaxes != self.ax:
             return
 
+        # Lowest point: only sets mixed-layer value.
+        if self.index == 0:
+            self.x[0] = event.xdata
+            self.x[1] = event.xdata
+            self.y[0] = 0.
+
+        # Mixed-layer top: only sets the mixed-layer height.
+        elif self.index == 1:
+            self.y[1] = event.ydata
+            self.y[2] = event.ydata
+
+            # Update sister plots.
+            for instance in self.instances:
+                instance.y[1] = event.ydata
+                instance.y[2] = event.ydata
+
+        # Mixed-layer top: only sets the mixed-layer jump.
+        elif self.index == 2:
+            self.x[2] = event.xdata
+
+        # Only update value, not height, for topmost point.
+        elif self.index == 4:
+            self.x[4] = event.xdata
+
+        # Other points are free.
+        else:
+            self.x[self.index] = event.xdata
+            self.y[self.index] = event.ydata
+
+
+        """
         # Some limits for mixed-layer shaped profile.
         # 1. Mixed-layer should stay mixed.
         if self.index == 0 or self.index == 1:
@@ -275,6 +306,7 @@ class Mixed_layer_profile:
         # 4. Make sure first point stays at z=0.
         if self.index == 0:
             self.y[0] = 0.
+        """
 
         # Update all profiles, including sister ones.
         for instance in self.instances:
@@ -493,7 +525,7 @@ class Fire_case:
         self.era5.wq [self.era5.wq  < 0] = 0
 
 
-    def plot(self):
+    def plot(self, plot_sounding=True):
         """
         Plot ERA5 initial profiles.
         """
@@ -546,7 +578,7 @@ class Fire_case:
             """
             Plot soundings for variable `var`.
             """
-            if len(self.soundings) == 0:
+            if len(self.soundings) == 0 or not plot_sounding:
                 return
 
             for name, sounding in self.soundings.items():
